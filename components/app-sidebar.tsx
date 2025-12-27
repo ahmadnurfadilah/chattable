@@ -22,8 +22,8 @@ import {
 import { NavUser } from "./nav-user";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { User } from "better-auth";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RestaurantSwitcher } from "./restaurant-switcher";
 
 const menuItems = [
   {
@@ -69,18 +69,7 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={
-                <Link href="/dashboard">
-                  <span className="text-base font-semibold">Speaksy</span>
-                </Link>
-              }
-            ></SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <RestaurantSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
