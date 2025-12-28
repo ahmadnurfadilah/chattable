@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, uuid, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, uuid, index, uniqueIndex, integer, numeric } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id")
@@ -147,6 +147,40 @@ export const invitations = pgTable(
   ]
 );
 
+export const menuCategories = pgTable("menu_categories", {
+  id: uuid("id")
+    .default(sql`pg_catalog.gen_random_uuid()`)
+    .primaryKey(),
+  name: text("name").notNull(),
+  orderColumn: integer("order_column").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const menus = pgTable(
+  "menus",
+  {
+    id: uuid("id")
+      .default(sql`pg_catalog.gen_random_uuid()`)
+      .primaryKey(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => menuCategories.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    image: text("image"),
+    price: numeric("price").notNull(),
+    isAvailable: boolean("is_available").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("menus_categoryId_idx").on(table.categoryId)]
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
@@ -192,5 +226,16 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
   users: one(users, {
     fields: [invitations.inviterId],
     references: [users.id],
+  }),
+}));
+
+export const menuCategoriesRelations = relations(menuCategories, ({ many }) => ({
+  menus: many(menus),
+}));
+
+export const menusRelations = relations(menus, ({ one }) => ({
+  category: one(menuCategories, {
+    fields: [menus.categoryId],
+    references: [menuCategories.id],
   }),
 }));
