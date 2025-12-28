@@ -18,10 +18,12 @@ import { ChevronDown, Loading03Icon, PlusSignIcon, VoiceIcon } from "@hugeicons/
 import { getRestaurants } from "@/lib/actions/restaurant";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 type Restaurant = {
   id: string;
   name: string;
+  logo: string;
 };
 
 export function RestaurantSwitcher() {
@@ -40,6 +42,7 @@ export function RestaurantSwitcher() {
       const restaurantsList: Restaurant[] = (data || []).map((restaurant) => ({
         id: restaurant.id,
         name: restaurant.name,
+        logo: restaurant.logo as string,
       }));
 
       setRestaurants(restaurantsList);
@@ -101,11 +104,18 @@ export function RestaurantSwitcher() {
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <div className="bg-primary text-black flex aspect-square size-8 items-center justify-center rounded-lg">
+                <div className="flex size-8 items-center justify-center rounded-md border">
                   {isLoading ? (
                     <HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" />
                   ) : (
-                    <HugeiconsIcon icon={VoiceIcon} />
+                    <Avatar className="size-5 rounded-lg">
+                      <AvatarImage
+                        src={activeRestaurant?.logo as string}
+                        alt={activeRestaurant?.name || "Restaurant Logo"}
+                        className="object-cover object-center rounded-lg"
+                      />
+                      <AvatarFallback className="rounded-lg">{activeRestaurant?.name?.charAt(0) || "R"}</AvatarFallback>
+                    </Avatar>
                   )}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -160,7 +170,14 @@ export function RestaurantSwitcher() {
                         currentRestaurant?.id === restaurant.id ? "bg-sidebar-accent" : ""
                       }`}
                     >
-                      <HugeiconsIcon icon={VoiceIcon} className="size-3.5 shrink-0" />
+                      <Avatar className="size-3.5 rounded-lg">
+                        <AvatarImage
+                          src={restaurant.logo as string}
+                          alt={restaurant.name || "Restaurant Logo"}
+                          className="object-cover object-center rounded-lg"
+                        />
+                        <AvatarFallback className="rounded-lg">{restaurant.name?.charAt(0) || "R"}</AvatarFallback>
+                      </Avatar>
                     </div>
                     <div className="flex flex-col">
                       <span className="font-medium">{restaurant.name}</span>
