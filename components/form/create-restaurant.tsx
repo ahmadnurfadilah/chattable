@@ -15,6 +15,8 @@ import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createRestaurant } from "@/lib/actions/restaurant";
+import AvatarUpload from "../file-upload/avatar-upload";
+import type { FileWithPreview } from "@/hooks/use-file-upload";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
@@ -24,6 +26,7 @@ const formSchema = z.object({
 export function CreateRestaurantForm({ className, ...props }: React.ComponentProps<"div">) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<FileWithPreview | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,7 +40,17 @@ export function CreateRestaurantForm({ className, ...props }: React.ComponentPro
     setIsLoading(true);
 
     try {
-      await createRestaurant(values);
+      // Create FormData to send to server action
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("description", values.description);
+
+      // Add logo file if selected
+      if (logoFile && logoFile.file instanceof File) {
+        formData.append("logo", logoFile.file);
+      }
+
+      await createRestaurant(formData);
       toast.success("Restaurant created successfully");
       router.push("/dashboard");
     } catch (error) {
@@ -59,12 +72,17 @@ export function CreateRestaurantForm({ className, ...props }: React.ComponentPro
         <CardContent>
           <form onSubmit={form.handleSubmit(handleCreateRestaurant)}>
             <FieldGroup>
+              <Field>
+                <AvatarUpload
+                  onFileChange={(file) => setLogoFile(file)}
+                />
+              </Field>
               <Controller
                 name="name"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="name">Name</FieldLabel>
+                    <FieldLabel htmlFor="name">Name <span className="text-destructive">*</span></FieldLabel>
                     <Input
                       {...field}
                       id="name"
