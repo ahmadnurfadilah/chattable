@@ -8,6 +8,13 @@
       "when": 1766845797600,
       "tag": "0000_dapper_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766982792972,
+      "tag": "0001_melodic_rhino",
+      "breakpoints": true
     }
   ]
 }

@@ -147,17 +147,24 @@ export const invitations = pgTable(
   ]
 );
 
-export const menuCategories = pgTable("menu_categories", {
-  id: uuid("id")
-    .default(sql`pg_catalog.gen_random_uuid()`)
-    .primaryKey(),
-  name: text("name").notNull(),
-  orderColumn: integer("order_column").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const menuCategories = pgTable(
+  "menu_categories",
+  {
+    id: uuid("id")
+      .default(sql`pg_catalog.gen_random_uuid()`)
+      .primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    orderColumn: integer("order_column").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("menu_categories_organizationId_idx").on(table.organizationId)]
+);
 
 export const menus = pgTable(
   "menus",
@@ -165,6 +172,9 @@ export const menus = pgTable(
     id: uuid("id")
       .default(sql`pg_catalog.gen_random_uuid()`)
       .primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
     categoryId: uuid("category_id")
       .notNull()
       .references(() => menuCategories.id, { onDelete: "cascade" }),
@@ -178,7 +188,10 @@ export const menus = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("menus_categoryId_idx").on(table.categoryId)]
+  (table) => [
+    index("menus_organizationId_idx").on(table.organizationId),
+    index("menus_categoryId_idx").on(table.categoryId),
+  ]
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -205,6 +218,8 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(members),
   invitations: many(invitations),
+  menuCategories: many(menuCategories),
+  menus: many(menus),
 }));
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -229,11 +244,19 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
   }),
 }));
 
-export const menuCategoriesRelations = relations(menuCategories, ({ many }) => ({
+export const menuCategoriesRelations = relations(menuCategories, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [menuCategories.organizationId],
+    references: [organizations.id],
+  }),
   menus: many(menus),
 }));
 
 export const menusRelations = relations(menus, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [menus.organizationId],
+    references: [organizations.id],
+  }),
   category: one(menuCategories, {
     fields: [menus.categoryId],
     references: [menuCategories.id],
