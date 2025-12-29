@@ -7,6 +7,9 @@ import { db } from "@/drizzle/db";
 import { members, organizations } from "@/drizzle/db/schema";
 import { eq } from "drizzle-orm";
 import { supabaseServer } from "../supabase";
+import { elevenLabs } from "../elevenlabs";
+import { conversationConfig } from "../config";
+import { ConversationalConfig } from "@elevenlabs/elevenlabs-js/api";
 
 export async function getRestaurants() {
   const data = await auth.api.listOrganizations({
@@ -39,6 +42,24 @@ export async function createRestaurant(formData: FormData) {
   }
 
   const restaurantId = data.id;
+
+  // Create ElevenLabs Agent
+  const agent = await elevenLabs.conversationalAi.agents.create({
+    name: name,
+    tags: [restaurantId],
+    conversationConfig: conversationConfig(name, restaurantId) as ConversationalConfig,
+  });
+
+  // Update restaurant with agent ID
+  await db
+    .update(organizations)
+    .set({
+      metadata: JSON.stringify({
+        agentId: agent.agentId,
+        description: description,
+      }),
+    })
+    .where(eq(organizations.id, restaurantId));
 
   // Upload logo if provided
   if (logoFile && logoFile.size > 0) {
