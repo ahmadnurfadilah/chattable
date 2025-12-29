@@ -24,6 +24,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { User } from "better-auth";
 import { usePathname } from "next/navigation";
 import { RestaurantSwitcher } from "./restaurant-switcher";
+import Link from "next/link";
 
 const menuItems = [
   {
@@ -80,10 +81,12 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
 
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton tooltip={item.title} isActive={isActive}>
-                      {item.icon && <HugeiconsIcon icon={item.icon} />}
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
+                    <Link href={item.url}>
+                      <SidebarMenuButton tooltip={item.title} isActive={isActive} className="cursor-pointer">
+                        {item.icon && <HugeiconsIcon icon={item.icon} />}
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </Link>
                   </SidebarMenuItem>
                 );
               })}
