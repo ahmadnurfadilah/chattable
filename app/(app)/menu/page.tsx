@@ -377,9 +377,11 @@ export default function MenuPage() {
                 </div>
                 <div className="shrink-0 flex items-center justify-between">
                   <p className="font-bold">${parseFloat(menu.price).toFixed(2)}</p>
-                  <Button variant="outline" size="icon">
-                    <HugeiconsIcon icon={PencilEdit02Icon} />
-                  </Button>
+                  <Link href={`/menu/${menu.id}/edit`}>
+                    <Button variant="outline" size="icon">
+                      <HugeiconsIcon icon={PencilEdit02Icon} />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
