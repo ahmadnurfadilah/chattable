@@ -194,6 +194,65 @@ export const menus = pgTable(
   ]
 );
 
+export const orders = pgTable(
+  "orders",
+  {
+    id: text("id").primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    type: text("type").notNull(), // dine-in/takeaway
+    customerName: text("customer_name"),
+    tableNumber: text("table_number"), // for dine-in orders
+    paymentType: text("payment_type").notNull(), // cash/credit
+    total: numeric("total").notNull(),
+    status: text("status").default("new").notNull(), // new/cooking/ready/completed
+    notes: text("notes"), // order-level notes
+    completedAt: timestamp("completed_at"), // when order was completed
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("orders_organizationId_idx").on(table.organizationId),
+    index("orders_status_idx").on(table.status),
+    index("orders_organizationId_status_idx").on(table.organizationId, table.status),
+  ]
+);
+
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: uuid("id")
+      .default(sql`pg_catalog.gen_random_uuid()`)
+      .primaryKey(),
+    orderId: text("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    menuId: uuid("menu_id")
+      .notNull()
+      .references(() => menus.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull(),
+    price: numeric("price").notNull(),
+    total: numeric("total").notNull(),
+    notes: text("notes"),
+    status: text("status").default("new").notNull(), // new/cooking/ready/completed
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("order_items_orderId_idx").on(table.orderId),
+    index("order_items_menuId_idx").on(table.menuId),
+    index("order_items_status_idx").on(table.status),
+    index("order_items_orderId_status_idx").on(table.orderId, table.status),
+  ]
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
@@ -220,6 +279,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   invitations: many(invitations),
   menuCategories: many(menuCategories),
   menus: many(menus),
+  orders: many(orders),
 }));
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -252,7 +312,7 @@ export const menuCategoriesRelations = relations(menuCategories, ({ one, many })
   menus: many(menus),
 }));
 
-export const menusRelations = relations(menus, ({ one }) => ({
+export const menusRelations = relations(menus, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [menus.organizationId],
     references: [organizations.id],
@@ -260,5 +320,25 @@ export const menusRelations = relations(menus, ({ one }) => ({
   category: one(menuCategories, {
     fields: [menus.categoryId],
     references: [menuCategories.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [orders.organizationId],
+    references: [organizations.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  menu: one(menus, {
+    fields: [orderItems.menuId],
+    references: [menus.id],
   }),
 }));

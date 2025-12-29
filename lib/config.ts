@@ -167,7 +167,7 @@ export const platformSettings = () => ({
     items: {
       type: "string",
       description:
-        'JSON string array containing ordered items. Format: [{"name": "Item Name", "quantity": 1, "customizations": "optional notes"}, ...]. Example: \'[{"name": "Chicken Rice Bowl", "quantity": 2, "customizations": "No spice"}]\'',
+        'JSON string array containing ordered items. Format: [{"name": "Item Name", "quantity": 1, "notes": "optional notes"}, ...]. Example: \'[{"name": "Chicken Rice Bowl", "quantity": 2, "notes": "No spice"}]\'',
     },
   },
 });

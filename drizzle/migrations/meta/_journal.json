@@ -15,6 +15,13 @@
       "when": 1766982792972,
       "tag": "0001_melodic_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767004517827,
+      "tag": "0002_long_magdalene",
+      "breakpoints": true
     }
   ]
 }
