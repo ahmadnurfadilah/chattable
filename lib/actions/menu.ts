@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "../auth";
 import { db } from "@/drizzle/db";
 import { menus, menuCategories } from "@/drizzle/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { supabaseServer } from "../supabase";
 
 export async function createMenu(formData: FormData) {
@@ -101,4 +101,39 @@ export async function createMenu(formData: FormData) {
     .returning();
 
   return newMenu;
+}
+
+export async function getMenus() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    return [];
+  }
+
+  const menusData = await db
+    .select({
+      id: menus.id,
+      name: menus.name,
+      description: menus.description,
+      image: menus.image,
+      price: menus.price,
+      isAvailable: menus.isAvailable,
+      createdAt: menus.createdAt,
+      updatedAt: menus.updatedAt,
+      categoryId: menus.categoryId,
+      categoryName: menuCategories.name,
+    })
+    .from(menus)
+    .innerJoin(menuCategories, eq(menus.categoryId, menuCategories.id))
+    .where(eq(menus.organizationId, activeOrgId))
+    .orderBy(asc(menuCategories.orderColumn), asc(menus.createdAt));
+
+  return menusData;
 }

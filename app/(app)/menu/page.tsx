@@ -23,70 +23,8 @@ import {
   createCategory,
   deleteCategory,
 } from "@/lib/actions/menu-category";
+import { getMenus } from "@/lib/actions/menu";
 import { toast } from "sonner";
-
-const menus = [
-  {
-    name: "Mozarella Pizza",
-    category: "Main Course",
-    price: 10.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious pizza width mozzarella cheese and tomato sauce",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: "Buffalo Wings",
-    category: "Main Course",
-    price: 10.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious pizza with mozzarella cheese and tomato sauce",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: "Nachos",
-    category: "Appetizer",
-    price: 2.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious nachos with cheese and salsa",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: "Salad",
-    category: "Salad",
-    price: 2.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious salad with lettuce and tomato",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: "Coke",
-    category: "Drink",
-    price: 1.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious pizza with mozzarella cheese and tomato sauce",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: "Ice Cream",
-    category: "Dessert",
-    price: 2.99,
-    image: "https://placehold.co/600x400/png",
-    description: "A delicious pizza with mozzarella cheese and tomato sauce",
-    isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 type Category = {
   id: string;
@@ -97,9 +35,23 @@ type Category = {
   updatedAt: Date;
 };
 
+type Menu = {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  price: string;
+  isAvailable: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  categoryId: string;
+  categoryName: string;
+};
+
 export default function MenuPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [menus, setMenus] = useState<Menu[]>([]);
   const [selectedTab, setSelectedTab] = useState("all");
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -117,9 +69,21 @@ export default function MenuPage() {
     }
   };
 
+  const loadMenus = async () => {
+    try {
+      const data = await getMenus();
+      setMenus(data);
+    } catch (error) {
+      console.error("Failed to load menus:", error);
+    }
+  };
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadCategories();
+    const loadData = async () => {
+      await loadCategories();
+      await loadMenus();
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -157,6 +121,7 @@ export default function MenuPage() {
     try {
       await updateCategoryName(categoryId, editingName.trim());
       await loadCategories();
+      await loadMenus();
       setEditingCategoryId(null);
       setEditingName("");
       toast.success("Category updated");
@@ -205,10 +170,12 @@ export default function MenuPage() {
 
     try {
       await updateCategoryOrder(newCategories.map((c) => c.id));
+      await loadMenus();
       toast.success("Category order updated");
     } catch (error) {
       toast.error("Failed to update category order");
       await loadCategories();
+      await loadMenus();
       console.error(error);
     }
   };
@@ -223,6 +190,7 @@ export default function MenuPage() {
     try {
       await createCategory(newCategoryName.trim());
       await loadCategories();
+      await loadMenus();
       setIsAddingCategory(false);
       setNewCategoryName("");
       toast.success("Category created");
@@ -240,6 +208,7 @@ export default function MenuPage() {
     try {
       await deleteCategory(categoryId);
       await loadCategories();
+      await loadMenus();
       toast.success("Category deleted");
     } catch (error) {
       toast.error("Failed to delete category");
@@ -247,7 +216,7 @@ export default function MenuPage() {
     }
   };
 
-  const filteredMenus = selectedTab === "all" ? menus : menus.filter((menu) => menu.category === selectedTab);
+  const filteredMenus = selectedTab === "all" ? menus : menus.filter((menu) => menu.categoryName === selectedTab);
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6">
@@ -392,17 +361,22 @@ export default function MenuPage() {
             <p className="text-sm text-muted-foreground transition-all ease-in-out">Add new menu item</p>
           </Link>
           {filteredMenus.map((menu) => (
-            <Card key={menu.name} className="py-0">
+            <Card key={menu.id} className="py-0">
               <CardContent className="p-2 flex flex-col gap-2">
                 <div className="shrink-0 relative aspect-4/3 rounded-xl overflow-hidden">
-                  <Image src={menu.image} alt={menu.name} fill className="object-cover" />
+                  <Image
+                    src={menu.image || `https://placehold.co/600x400/png?text=Speaksy`}
+                    alt={menu.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
                   <h3 className="text-base font-semibold">{menu.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{menu.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{menu.description || ""}</p>
                 </div>
                 <div className="shrink-0 flex items-center justify-between">
-                  <p className="font-bold">${menu.price}</p>
+                  <p className="font-bold">${parseFloat(menu.price).toFixed(2)}</p>
                   <Button variant="outline" size="icon">
                     <HugeiconsIcon icon={PencilEdit02Icon} />
                   </Button>
