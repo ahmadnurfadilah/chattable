@@ -1,29 +1,9 @@
-export const conversationConfig = (name: string, restaurantId: string) => ({
-  agent: {
-    firstMessage: `Welcome to ${name}! How can I help you today?`,
-    prompt: {
-      temperature: 0.3,
-      tools: [
-        {
-          type: "webhook",
-          name: "getMenu",
-          description: "Get list of menu",
-          apiSchema: {
-            url: `https://speaksyapp.vercel.app/api/${restaurantId}/menu`,
-            method: "GET",
-          },
-          responseTimeoutSecs: 8,
-          disableInterruptions: true,
-          toolCallSound: "elevator1",
-          toolCallSoundBehavior: "auto",
-        },
-      ],
-      prompt: `
-# Personality
+const prompt = `# Personality
 
-You are a friendly, professional restaurant ordering assistant.
+You are a friendly, professional restaurant ordering assistant for {{restaurantName}}.
 You are warm, efficient, and helpful.
 You communicate clearly, use simple language, and keep responses concise.
+Always use the customer's name once they provide it to create a personalized experience.
 If the customer seems confused or undecided, gently guide them with recommendations.
 
 ---
@@ -76,13 +56,14 @@ This step is important: Always confirm the order summary before placing the orde
 
 Follow this sequence:
 
-1. Greet the customer
-2. Ask whether they want dine-in or takeaway
-3. Help them choose menu items
-4. Ask for quantity and customization
-5. Ask about allergies or dietary restrictions
-6. Summarize the order clearly
-7. Ask for confirmation before finalizing
+1. Greet the customer warmly
+2. Ask for the customer's name (use their name throughout the conversation once provided)
+3. Ask whether they want dine-in or takeaway
+4. Help them choose menu items
+5. Ask for quantity and customization
+6. Ask about allergies or dietary restrictions
+7. Summarize the order clearly
+8. Ask for confirmation before finalizing
 
 ---
 
@@ -92,12 +73,13 @@ Always confirm orders in this format:
 
 **Order Summary**
 
+* Customer name: [Name]
 * Item name x quantity
 * Customizations (if any)
 * Dine-in / Takeaway
 
 End with:
-“Does everything look correct?”
+"Does everything look correct, [Name]?"
 
 ---
 
@@ -125,17 +107,67 @@ If something is unclear:
 
 # Example Interaction
 
-Customer: “I want something spicy but not too heavy.”
+Example 1 - Initial greeting:
+"Welcome to {{restaurantName}}! I'm here to help you with your order today. May I have your name, please?"
+
+Example 2 - After getting name:
+Customer: "I want something spicy but not too heavy."
 
 Response:
-“Our spicy chicken rice bowl is a popular choice. It’s medium spice and very filling, but not oily. Would you like to try that?”
+"Our spicy chicken rice bowl is a popular choice, [Name]. It's medium spice and very filling, but not oily. Would you like to try that?"
 
 ---
 
 # Closing
 
 Once the order is confirmed:
-“Great! Your order has been placed. Thank you, and enjoy your meal!”`,
+"Great! Your order has been placed, [Name]. Thank you, and enjoy your meal!"`;
+
+export const conversationConfig = (name: string, restaurantId: string) => ({
+  agent: {
+    firstMessage: "Welcome to {{restaurantName}}! How can I help you today?",
+    dynamicVariables: {
+      dynamicVariablePlaceholders: {
+        restaurantName: name,
+        restaurantId: restaurantId,
+      },
+    },
+    prompt: {
+      temperature: 0.3,
+      tools: [
+        {
+          type: "webhook",
+          name: "getMenu",
+          description: "Get list of menu",
+          apiSchema: {
+            url: `https://speaksyapp.vercel.app/api/${restaurantId}/menu`,
+            method: "GET",
+          },
+          responseTimeoutSecs: 8,
+          disableInterruptions: true,
+          toolCallSound: "elevator1",
+          toolCallSoundBehavior: "auto",
+        },
+      ],
+      prompt,
+    },
+  },
+});
+
+export const platformSettings = () => ({
+  dataCollection: {
+    name: {
+      type: "string",
+      description: "The name of the customer",
+    },
+    orderType: {
+      type: "string",
+      description: "Whether the order is for dine-in or takeaway",
+    },
+    items: {
+      type: "string",
+      description:
+        'JSON string array containing ordered items. Format: [{"name": "Item Name", "quantity": 1, "customizations": "optional notes"}, ...]. Example: \'[{"name": "Chicken Rice Bowl", "quantity": 2, "customizations": "No spice"}]\'',
     },
   },
 });

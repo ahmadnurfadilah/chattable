@@ -8,8 +8,8 @@ import { members, organizations } from "@/drizzle/db/schema";
 import { eq } from "drizzle-orm";
 import { supabaseServer } from "../supabase";
 import { elevenLabs } from "../elevenlabs";
-import { conversationConfig } from "../config";
-import { ConversationalConfig } from "@elevenlabs/elevenlabs-js/api";
+import { conversationConfig, platformSettings } from "../config";
+import { AgentPlatformSettingsRequestModel, ConversationalConfig } from "@elevenlabs/elevenlabs-js/api";
 
 export async function getRestaurants() {
   const data = await auth.api.listOrganizations({
@@ -48,6 +48,7 @@ export async function createRestaurant(formData: FormData) {
     name: name,
     tags: [restaurantId],
     conversationConfig: conversationConfig(name, restaurantId) as ConversationalConfig,
+    platformSettings: platformSettings() as AgentPlatformSettingsRequestModel,
   });
 
   // Update restaurant with agent ID
