@@ -1,0 +1,104 @@
+"use server";
+
+import { headers } from "next/headers";
+import { auth } from "../auth";
+import { db } from "@/drizzle/db";
+import { menus, menuCategories } from "@/drizzle/db/schema";
+import { eq, and } from "drizzle-orm";
+import { supabaseServer } from "../supabase";
+
+export async function createMenu(formData: FormData) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    throw new Error("No active organization");
+  }
+
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string | null;
+  const categoryId = formData.get("categoryId") as string;
+  const price = formData.get("price") as string;
+  const isAvailable = formData.get("isAvailable") === "true";
+  const imageFile = formData.get("image") as File | null;
+
+  // Validate required fields
+  if (!name || !categoryId || !price) {
+    throw new Error("Name, category, and price are required");
+  }
+
+  // Validate category belongs to organization
+  const category = await db
+    .select()
+    .from(menuCategories)
+    .where(and(eq(menuCategories.id, categoryId), eq(menuCategories.organizationId, activeOrgId)))
+    .limit(1);
+
+  if (category.length === 0) {
+    throw new Error("Invalid category");
+  }
+
+  // Parse price
+  const priceValue = parseFloat(price);
+  if (isNaN(priceValue) || priceValue < 0) {
+    throw new Error("Invalid price");
+  }
+
+  // Upload image if provided
+  let imageUrl: string | null = null;
+  if (imageFile && imageFile.size > 0) {
+    try {
+      // Generate a unique file name
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `menu-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `menus/${activeOrgId}/${fileName}`;
+
+      // Convert File to ArrayBuffer for server-side upload
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Upload file to Supabase storage
+      const { error: uploadError } = await supabaseServer.storage.from("speaksy").upload(filePath, buffer, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: imageFile.type,
+      });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabaseServer.storage.from("speaksy").getPublicUrl(filePath);
+
+      imageUrl = publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw new Error("Failed to upload image");
+    }
+  }
+
+  // Create menu item
+  const [newMenu] = await db
+    .insert(menus)
+    .values({
+      organizationId: activeOrgId,
+      categoryId,
+      name,
+      description: description || null,
+      image: imageUrl,
+      price: priceValue.toString(),
+      isAvailable,
+    })
+    .returning();
+
+  return newMenu;
+}
