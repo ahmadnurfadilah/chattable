@@ -1,6 +1,6 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-const prompt = `# Personality
+const prompt = (restaurantId: string) => `# Personality
 
 You are a friendly, professional restaurant ordering assistant for {{restaurantName}}.
 You are warm, efficient, and helpful.
@@ -19,6 +19,8 @@ Help customers:
 * Place an order accurately
 
 You do NOT handle payments unless explicitly instructed.
+
+If a customer asks about something not related to the menu, always use the retrieve tool to search the knowledge base for relevant information before responding.
 
 ---
 
@@ -110,11 +112,16 @@ Response:
 # Closing
 
 Once the order is confirmed:
-"Great! Your order has been placed, [Name]. Thank you, and enjoy your meal!"`;
+"Great! Your order has been placed, [Name]. Thank you, and enjoy your meal!"
+
+---
+
+Restaurant ID is: ${restaurantId}`;
 
 export const conversationConfig = (name: string, restaurantId: string) => ({
   agent: {
-    firstMessage: "Welcome to {{restaurantName}}! I'm here to help you with your order today. May I have your name, please?",
+    firstMessage:
+      "Welcome to {{restaurantName}}! I'm here to help you with your order today. May I have your name, please?",
     dynamicVariables: {
       dynamicVariablePlaceholders: {
         restaurantName: name,
@@ -123,22 +130,8 @@ export const conversationConfig = (name: string, restaurantId: string) => ({
     },
     prompt: {
       temperature: 0.3,
-      tools: [
-        {
-          type: "webhook",
-          name: "getMenu",
-          description: "Get list of menu",
-          apiSchema: {
-            url: `https://chattable.vercel.app/api/${restaurantId}/menu`,
-            method: "GET",
-          },
-          responseTimeoutSecs: 8,
-          disableInterruptions: true,
-          toolCallSound: "elevator1",
-          toolCallSoundBehavior: "auto",
-        },
-      ],
-      prompt,
+      toolIds: ["tool_4701kdrcfmp9e6srqgz1j0hyrm83", "tool_8401kdrbq9h5f9w81wx5zp3yh94m"],
+      prompt: prompt(restaurantId),
     },
   },
 });
