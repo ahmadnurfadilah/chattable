@@ -247,3 +247,43 @@ export async function getOrders(status?: string, date?: Date) {
     })),
   }));
 }
+
+/**
+ * Update order status
+ */
+export async function updateOrderStatus(orderId: string, status: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    throw new Error("No active organization");
+  }
+
+  // Validate status
+  const validStatuses = ["new", "cooking", "ready", "completed"];
+  if (!validStatuses.includes(status)) {
+    throw new Error(`Invalid status: ${status}`);
+  }
+
+  // Update order
+  const [updatedOrder] = await db
+    .update(orders)
+    .set({
+      status,
+      completedAt: status === "completed" ? new Date() : null,
+    })
+    .where(and(eq(orders.id, orderId), eq(orders.organizationId, activeOrgId)))
+    .returning();
+
+  if (!updatedOrder) {
+    throw new Error("Order not found");
+  }
+
+  return updatedOrder;
+}
