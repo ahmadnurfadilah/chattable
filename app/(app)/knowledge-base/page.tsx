@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getTextSourcesPaginated } from "@/lib/actions/sources";
+import { getFileSources, getTextSourcesPaginated } from "@/lib/actions/sources";
 import { FileIcon, TextIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import TextSourcesWrapper from "@/components/form/text-sources-wrapper";
+import UploadFiles from "@/components/form/upload-files";
 
 export default async function KnowledgeBasePage() {
   const session = await auth.api.getSession({
@@ -33,6 +34,7 @@ export default async function KnowledgeBasePage() {
     );
   }
 
+  const files = await getFileSources(organizationId);
   const initialData = await getTextSourcesPaginated(organizationId, 1, 10);
 
   return (
@@ -59,7 +61,9 @@ export default async function KnowledgeBasePage() {
           <TabsContent value="text">
             <TextSourcesWrapper organizationId={organizationId} initialData={initialData} />
           </TabsContent>
-          <TabsContent value="file"></TabsContent>
+          <TabsContent value="file">
+            <UploadFiles organizationId={organizationId} initialFiles={files} />
+          </TabsContent>
         </Tabs>
       </div>
     </div>

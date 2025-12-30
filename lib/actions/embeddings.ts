@@ -30,6 +30,15 @@ export const createEmbedding = async (sourceId: string) => {
 
   const docs = await documentLoader(source[0]);
 
+  // If source type is file, store the extracted text in the sources table
+  if (source[0].type === "file") {
+    const extractedText = docs.map((doc) => doc.pageContent).join("\n\n");
+    await db
+      .update(sources)
+      .set({ content: extractedText })
+      .where(eq(sources.id, sourceId));
+  }
+
   // Split documents into chunks
   const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
@@ -58,7 +67,7 @@ export const createEmbedding = async (sourceId: string) => {
 
 export const documentLoader = async (source: typeof sources.$inferSelect) => {
   if (source.type === "file") {
-    const { data: fileUrl } = supabaseServer.storage.from("gowork-ai").getPublicUrl(source.filePath as string);
+    const { data: fileUrl } = supabaseServer.storage.from("chattable").getPublicUrl(source.filePath as string);
 
     // Fetch the document from the URL
     const response = await fetch(fileUrl.publicUrl);

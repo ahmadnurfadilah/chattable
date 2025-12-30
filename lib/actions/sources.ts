@@ -65,7 +65,7 @@ export const getFileSources = async (organizationId: string) => {
     files.map(async (file: (typeof files)[0]) => {
       if (!file.filePath) return null;
 
-      const { data: urlData } = supabaseServer.storage.from("gowork-ai").getPublicUrl(file.filePath);
+      const { data: urlData } = supabaseServer.storage.from("chattable").getPublicUrl(file.filePath);
 
       return {
         id: file.id,
@@ -109,7 +109,7 @@ export const createFileSource = async (organizationId: string, file: File) => {
   const filePath = `sources/${organizationId}/${fileName}`;
 
   // Upload to Supabase storage
-  const { error: uploadError } = await supabaseServer.storage.from("gowork-ai").upload(filePath, file, {
+  const { error: uploadError } = await supabaseServer.storage.from("chattable").upload(filePath, file, {
     contentType: file.type,
     upsert: false,
   });
@@ -119,7 +119,7 @@ export const createFileSource = async (organizationId: string, file: File) => {
   }
 
   // Get public URL
-  const { data: urlData } = supabaseServer.storage.from("gowork-ai").getPublicUrl(filePath);
+  const { data: urlData } = supabaseServer.storage.from("chattable").getPublicUrl(filePath);
 
   // Save to database
   const [source] = await db
@@ -170,7 +170,7 @@ export const deleteFileSource = async (sourceId: string) => {
 
   // Delete from storage
   if (file.filePath) {
-    const { error: storageError } = await supabaseServer.storage.from("gowork-ai").remove([file.filePath]);
+    const { error: storageError } = await supabaseServer.storage.from("chattable").remove([file.filePath]);
 
     if (storageError) {
       throw new Error("Failed to delete file from storage");
