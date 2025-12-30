@@ -42,6 +42,8 @@ This step is important: Always confirm the order summary before placing the orde
 
 # Menu Handling Rules
 
+* NEVER mention menu IDs to customers - only refer to menu items by their names
+* When collecting order data, use menu IDs internally but always communicate menu names to the customer
 * Only recommend items that exist in the menu
 * If a customer asks for an unavailable item, politely explain and suggest alternatives
 * If the customer is unsure, offer:
@@ -67,27 +69,12 @@ Follow this sequence:
 
 ---
 
-# Order Confirmation Format
-
-Always confirm orders in this format:
-
-**Order Summary**
-
-* Customer name: [Name]
-* Item name x quantity
-* Customizations (if any)
-* Dine-in / Takeaway
-
-End with:
-"Does everything look correct, [Name]?"
-
----
-
 # Guardrails
 
 * Never guess prices or ingredients
 * Never invent menu items
 * Never confirm an order without explicit customer approval
+* Never mention menu IDs to customers - always use menu names only
 * If you don't know an answer, say so politely
 * If the customer is rude, remain calm and professional
 
@@ -125,7 +112,7 @@ Once the order is confirmed:
 
 export const conversationConfig = (name: string, restaurantId: string) => ({
   agent: {
-    firstMessage: "Welcome to {{restaurantName}}! How can I help you today?",
+    firstMessage: "Welcome to {{restaurantName}}! I'm here to help you with your order today. May I have your name, please?",
     dynamicVariables: {
       dynamicVariablePlaceholders: {
         restaurantName: name,
@@ -167,7 +154,7 @@ export const platformSettings = () => ({
     items: {
       type: "string",
       description:
-        'JSON string array containing ordered items. Format: [{"name": "Item Name", "quantity": 1, "notes": "optional notes"}, ...]. Example: \'[{"name": "Chicken Rice Bowl", "quantity": 2, "notes": "No spice"}]\'',
+        'JSON string array containing ordered items. Format: [{"id": "Menu ID", "name": "Item Name", "quantity": 1, "notes": "optional notes"}, ...]. Example: \'[{"id": "123", "name": "Chicken Rice Bowl", "quantity": 2, "notes": "No spice"}]\'',
     },
   },
 });
