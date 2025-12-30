@@ -1,9 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
+import { auth } from "../auth";
 import { db } from "@/drizzle/db";
 import { organizations, orders, orderItems, menus } from "@/drizzle/db/schema";
-import { eq, inArray, and } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { eq, inArray, and, desc } from "drizzle-orm";
 
 interface OrderItem {
   id: string;
@@ -114,8 +115,11 @@ export async function createOrderFromWebhook(agentId: string, dataCollectionResu
     };
   });
 
-  // Generate order ID
-  const orderId = randomUUID();
+  // Generate an 8-digit alphanumeric orderId with non-ambiguous characters
+  const nonAmbigChars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // Exclude I, L, O, 1, 0
+  const orderId = Array.from({ length: 8 }, () =>
+    nonAmbigChars[Math.floor(Math.random() * nonAmbigChars.length)]
+  ).join('');
 
   // Create order
   const [newOrder] = await db
@@ -151,4 +155,84 @@ export async function createOrderFromWebhook(agentId: string, dataCollectionResu
     order: newOrder,
     orderItems: createdOrderItems,
   };
+}
+
+/**
+ * Get orders with their items for the current organization
+ */
+export async function getOrders(status?: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    return [];
+  }
+
+  // Build where condition
+  const whereConditions = [eq(orders.organizationId, activeOrgId)];
+  if (status && status !== "all") {
+    whereConditions.push(eq(orders.status, status));
+  }
+
+  // Fetch orders
+  const ordersData = await db
+    .select()
+    .from(orders)
+    .where(and(...whereConditions))
+    .orderBy(desc(orders.createdAt));
+
+  if (ordersData.length === 0) {
+    return [];
+  }
+
+  // Fetch order items for all orders
+  const orderIds = ordersData.map((order) => order.id);
+  const itemsData = await db
+    .select({
+      id: orderItems.id,
+      orderId: orderItems.orderId,
+      menuId: orderItems.menuId,
+      quantity: orderItems.quantity,
+      price: orderItems.price,
+      total: orderItems.total,
+      notes: orderItems.notes,
+      menuName: menus.name,
+    })
+    .from(orderItems)
+    .innerJoin(menus, eq(orderItems.menuId, menus.id))
+    .where(inArray(orderItems.orderId, orderIds));
+
+  // Group items by orderId
+  const itemsByOrderId = new Map<string, typeof itemsData>();
+  for (const item of itemsData) {
+    if (!itemsByOrderId.has(item.orderId)) {
+      itemsByOrderId.set(item.orderId, []);
+    }
+    itemsByOrderId.get(item.orderId)!.push(item);
+  }
+
+  // Combine orders with their items
+  return ordersData.map((order) => ({
+    id: order.id,
+    name: order.customerName || "Guest",
+    tableNumber: order.tableNumber,
+    orderType: order.type,
+    status: order.status,
+    total: parseFloat(order.total.toString()),
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    items: (itemsByOrderId.get(order.id) || []).map((item) => ({
+      id: item.id,
+      name: item.menuName,
+      quantity: item.quantity,
+      price: parseFloat(item.price.toString()),
+      total: parseFloat(item.total.toString()),
+    })),
+  }));
 }
