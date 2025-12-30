@@ -25,14 +25,14 @@ CREATE TABLE "documents" (
 	"source_id" uuid,
 	"content" text,
 	"metadata" jsonb,
-	"embedding" vector(768)
+	"embedding" vector(3072)
 );
 --> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_source_id_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."sources"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "documents_source_id_idx" ON "documents" USING btree ("source_id");
 -- Create a function to search for documents
 CREATE FUNCTION match_documents (
-  query_embedding vector(768),
+  query_embedding vector(3072),
   match_count int DEFAULT NULL,
   filter jsonb DEFAULT '{}'
 ) RETURNS TABLE (

@@ -1,3 +1,5 @@
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+
 const prompt = `# Personality
 
 You are a friendly, professional restaurant ordering assistant for {{restaurantName}}.
@@ -157,4 +159,8 @@ export const platformSettings = () => ({
         'JSON string array containing ordered items. Format: [{"id": "Menu ID", "name": "Item Name", "quantity": 1, "notes": "optional notes"}, ...]. Example: \'[{"id": "123", "name": "Chicken Rice Bowl", "quantity": 2, "notes": "No spice"}]\'',
     },
   },
+});
+
+export const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+  model: "gemini-embedding-001",
 });

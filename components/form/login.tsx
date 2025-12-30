@@ -17,7 +17,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 
 const formSchema = z.object({
-  email: z.email("Invalid email address."),
+  email: z.string().email("Invalid email address."),
   password: z.string().min(8, "Password must be at least 8 characters."),
 });
 

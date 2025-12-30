@@ -298,7 +298,7 @@ export const sources = pgTable(
 // Custom type for pgvector
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType() {
-    return "vector(768)";
+    return "vector(3072)";
   },
   toDriver(value: number[]): string {
     return `[${value.join(",")}]`;
