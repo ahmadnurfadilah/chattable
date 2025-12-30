@@ -75,7 +75,7 @@ export async function createRestaurant(formData: FormData) {
       const buffer = Buffer.from(arrayBuffer);
 
       // Upload file to Supabase storage
-      const { error: uploadError } = await supabaseServer.storage.from("speaksy").upload(filePath, buffer, {
+      const { error: uploadError } = await supabaseServer.storage.from("chattable").upload(filePath, buffer, {
         cacheControl: "3600",
         upsert: false,
         contentType: logoFile.type,
@@ -88,7 +88,7 @@ export async function createRestaurant(formData: FormData) {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabaseServer.storage.from("speaksy").getPublicUrl(filePath);
+      } = supabaseServer.storage.from("chattable").getPublicUrl(filePath);
 
       // Update restaurant with logo URL
       await db.update(organizations).set({ logo: publicUrl }).where(eq(organizations.id, restaurantId));

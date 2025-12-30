@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Speaksy",
-  description: "Speaksy is a no-code platform that lets cafés and restaurants build their own voice-driven kiosks — turning ordering into a natural, human conversation.",
+  title: "Chattable",
+  description: "Chattable is a no-code platform that lets cafés and restaurants build their own voice-driven kiosks — turning ordering into a natural, human conversation.",
 };
 
 export default function RootLayout({

@@ -22,7 +22,7 @@ export default async function RegisterPage() {
           <div className="text-primary flex items-center justify-center rounded-md">
             <HugeiconsIcon icon={VoiceIcon} />
           </div>
-          Speaksy
+          Chattable
         </Link>
         <RegisterForm />
       </div>

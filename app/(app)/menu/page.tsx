@@ -365,7 +365,7 @@ export default function MenuPage() {
               <CardContent className="p-2 flex flex-col gap-2">
                 <div className="shrink-0 relative aspect-4/3 rounded-xl overflow-hidden">
                   <Image
-                    src={menu.image || `https://placehold.co/600x400/png?text=Speaksy`}
+                    src={menu.image || `https://placehold.co/600x400/png?text=Chattable`}
                     alt={menu.name}
                     fill
                     className="object-cover"

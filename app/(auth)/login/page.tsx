@@ -22,7 +22,7 @@ export default async function LoginPage() {
           <div className="text-primary flex items-center justify-center rounded-md">
             <HugeiconsIcon icon={VoiceIcon} />
           </div>
-          Speaksy
+          Chattable
         </Link>
         <LoginForm />
       </div>

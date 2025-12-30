@@ -127,7 +127,7 @@ export const conversationConfig = (name: string, restaurantId: string) => ({
           name: "getMenu",
           description: "Get list of menu",
           apiSchema: {
-            url: `https://speaksyapp.vercel.app/api/${restaurantId}/menu`,
+            url: `https://chattable.vercel.app/api/${restaurantId}/menu`,
             method: "GET",
           },
           responseTimeoutSecs: 8,

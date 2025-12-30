@@ -64,7 +64,7 @@ export async function createMenu(formData: FormData) {
       const buffer = Buffer.from(arrayBuffer);
 
       // Upload file to Supabase storage
-      const { error: uploadError } = await supabaseServer.storage.from("speaksy").upload(filePath, buffer, {
+      const { error: uploadError } = await supabaseServer.storage.from("chattable").upload(filePath, buffer, {
         cacheControl: "3600",
         upsert: false,
         contentType: imageFile.type,
@@ -77,7 +77,7 @@ export async function createMenu(formData: FormData) {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabaseServer.storage.from("speaksy").getPublicUrl(filePath);
+      } = supabaseServer.storage.from("chattable").getPublicUrl(filePath);
 
       imageUrl = publicUrl;
     } catch (error) {
@@ -248,7 +248,7 @@ export async function updateMenu(menuId: string, formData: FormData) {
       const buffer = Buffer.from(arrayBuffer);
 
       // Upload file to Supabase storage
-      const { error: uploadError } = await supabaseServer.storage.from("speaksy").upload(filePath, buffer, {
+      const { error: uploadError } = await supabaseServer.storage.from("chattable").upload(filePath, buffer, {
         cacheControl: "3600",
         upsert: false,
         contentType: imageFile.type,
@@ -261,7 +261,7 @@ export async function updateMenu(menuId: string, formData: FormData) {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabaseServer.storage.from("speaksy").getPublicUrl(filePath);
+      } = supabaseServer.storage.from("chattable").getPublicUrl(filePath);
 
       imageUrl = publicUrl;
     } catch (error) {

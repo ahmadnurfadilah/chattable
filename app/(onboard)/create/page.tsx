@@ -11,7 +11,7 @@ export default function CreateRestaurantPage() {
           <div className="text-primary flex items-center justify-center rounded-md">
             <HugeiconsIcon icon={VoiceIcon} />
           </div>
-          Speaksy
+          Chattable
         </Link>
         <CreateRestaurantForm />
       </div>
