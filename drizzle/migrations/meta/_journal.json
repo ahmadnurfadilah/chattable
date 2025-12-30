@@ -22,6 +22,13 @@
       "when": 1767004517827,
       "tag": "0002_long_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1767113666032,
+      "tag": "0003_broken_doomsday",
+      "breakpoints": true
     }
   ]
 }

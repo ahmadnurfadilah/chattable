@@ -1,5 +1,19 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, uuid, index, uniqueIndex, integer, numeric } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  uuid,
+  index,
+  uniqueIndex,
+  integer,
+  numeric,
+  check,
+  customType,
+  bigserial,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id")
@@ -206,7 +220,7 @@ export const orders = pgTable(
     tableNumber: text("table_number"), // for dine-in orders
     paymentType: text("payment_type").notNull(), // cash/credit
     total: numeric("total").notNull(),
-    status: text("status").default("new").notNull(), // new/cooking/ready/completed
+    status: text("status").default("new").notNull(), // new/cooking/ready/completed/cancelled
     notes: text("notes"), // order-level notes
     completedAt: timestamp("completed_at"), // when order was completed
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -238,7 +252,7 @@ export const orderItems = pgTable(
     price: numeric("price").notNull(),
     total: numeric("total").notNull(),
     notes: text("notes"),
-    status: text("status").default("new").notNull(), // new/cooking/ready/completed
+    status: text("status").default("new").notNull(), // new/cooking/ready/completed/cancelled
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -251,6 +265,65 @@ export const orderItems = pgTable(
     index("order_items_status_idx").on(table.status),
     index("order_items_orderId_status_idx").on(table.orderId, table.status),
   ]
+);
+
+export const sources = pgTable(
+  "sources",
+  {
+    id: uuid("id")
+      .default(sql`pg_catalog.gen_random_uuid()`)
+      .primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    name: text("name").notNull(),
+    content: text("content"),
+    fileName: text("file_name"),
+    filePath: text("file_path"),
+    mimeType: text("mime_type"),
+    size: integer("size"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("sources_organizationId_idx").on(table.organizationId),
+    check("sources_type_check", sql`${table.type} IN ('text', 'file')`),
+  ]
+);
+
+// Custom type for pgvector
+const vector = customType<{ data: number[]; driverData: string }>({
+  dataType() {
+    return "vector(768)";
+  },
+  toDriver(value: number[]): string {
+    return `[${value.join(",")}]`;
+  },
+  fromDriver(value: string): number[] {
+    // Handle pgvector format: "[1,2,3]" or PostgreSQL array format
+    if (typeof value === "string") {
+      // Remove brackets and parse
+      const cleaned = value.replace(/[\[\]]/g, "");
+      return cleaned.split(",").map(Number);
+    }
+    return Array.isArray(value) ? value : [];
+  },
+});
+
+export const documents = pgTable(
+  "documents",
+  {
+    id: bigserial("id", { mode: "bigint" }).primaryKey(),
+    sourceId: uuid("source_id").references(() => sources.id, { onDelete: "cascade" }),
+    content: text("content"),
+    metadata: jsonb("metadata"),
+    embedding: vector("embedding"),
+  },
+  (table) => [index("documents_source_id_idx").on(table.sourceId)]
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -280,6 +353,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   menuCategories: many(menuCategories),
   menus: many(menus),
   orders: many(orders),
+  sources: many(sources),
 }));
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -340,5 +414,20 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   menu: one(menus, {
     fields: [orderItems.menuId],
     references: [menus.id],
+  }),
+}));
+
+export const sourcesRelations = relations(sources, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [sources.organizationId],
+    references: [organizations.id],
+  }),
+  documents: many(documents),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  sources: one(sources, {
+    fields: [documents.sourceId],
+    references: [sources.id],
   }),
 }));
