@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "../auth";
 import { db } from "@/drizzle/db";
 import { organizations, orders, orderItems, menus } from "@/drizzle/db/schema";
-import { eq, inArray, and, desc } from "drizzle-orm";
+import { eq, inArray, and, desc, gte, lte } from "drizzle-orm";
 
 interface OrderItem {
   id: string;
@@ -160,7 +160,7 @@ export async function createOrderFromWebhook(agentId: string, dataCollectionResu
 /**
  * Get orders with their items for the current organization
  */
-export async function getOrders(status?: string) {
+export async function getOrders(status?: string, date?: Date) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -178,6 +178,17 @@ export async function getOrders(status?: string) {
   const whereConditions = [eq(orders.organizationId, activeOrgId)];
   if (status && status !== "all") {
     whereConditions.push(eq(orders.status, status));
+  }
+
+  // Filter by date if provided
+  if (date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    whereConditions.push(gte(orders.createdAt, startOfDay));
+    whereConditions.push(lte(orders.createdAt, endOfDay));
   }
 
   // Fetch orders
