@@ -16,6 +16,7 @@ import {
   DashboardBrowsingIcon,
   Invoice02Icon,
   MenuRestaurantIcon,
+  Rocket,
   Settings01Icon,
   WebDesign01Icon,
 } from "@hugeicons/core-free-icons";
@@ -48,9 +49,9 @@ const menuItems = [
     icon: AiBrain04Icon,
   },
   {
-    title: "Brand Design",
-    url: "/brand-design",
-    icon: WebDesign01Icon,
+    title: "Publish",
+    url: "/publish",
+    icon: Rocket,
   },
   {
     title: "Settings",
