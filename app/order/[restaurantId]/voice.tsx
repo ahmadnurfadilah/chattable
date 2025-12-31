@@ -293,7 +293,7 @@ export default function VoiceChat({
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed right-4 top-1/2 z-50 -translate-y-1/2"
           >
-            <Card className="w-80 max-h-[600px] flex flex-col shadow-lg border-2 py-0">
+            <Card className="w-80 max-h-[600px] flex flex-col shadow-lg border-2 py-0 gap-0">
               {/* Cart Header */}
               <div className="flex items-center justify-between p-4 border-b">
                 <div className="flex items-center gap-2">
