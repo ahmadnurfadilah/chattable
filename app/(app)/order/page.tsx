@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar01Icon,
   FireIcon,
@@ -160,7 +161,47 @@ export default function OrderPage() {
           {["all", "new", "cooking", "ready", "completed"].map((tabValue) => (
             <TabsContent key={tabValue} value={tabValue} className="space-y-4">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading orders...</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <Card key={index} className="p-2">
+                      <CardContent className="p-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <Skeleton className="h-5 w-24" />
+                          <Skeleton className="h-4 w-16" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1">
+                            <Skeleton className="h-4 w-4 rounded" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Skeleton className="h-4 w-4 rounded" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </div>
+
+                        <hr className="my-3 border-dashed" />
+
+                        <div className="space-y-1.5 mb-3">
+                          <div className="flex items-center justify-between">
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-12" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Skeleton className="h-3 w-28" />
+                            <Skeleton className="h-3 w-10" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Skeleton className="h-3 w-24" />
+                            <Skeleton className="h-3 w-10" />
+                          </div>
+                        </div>
+
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               ) : orders.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No orders found</div>
               ) : (

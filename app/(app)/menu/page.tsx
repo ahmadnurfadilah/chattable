@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   PencilEdit02Icon,
   PlusSignIcon,
@@ -58,6 +59,7 @@ export default function MenuPage() {
   const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadCategories = async () => {
@@ -80,8 +82,13 @@ export default function MenuPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      await loadCategories();
-      await loadMenus();
+      try {
+        setLoading(true);
+        await loadCategories();
+        await loadMenus();
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, []);
@@ -353,39 +360,62 @@ export default function MenuPage() {
         </Tabs>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          <Link
-            href="/menu/create"
-            className="w-full h-full flex flex-col gap-4 items-center justify-center border border-dashed border-border rounded-xl p-4 hover:bg-muted group"
-          >
-            <HugeiconsIcon icon={PlusSignIcon} className="group-hover:rotate-180 transition-all ease-in-out" />
-            <p className="text-sm text-muted-foreground transition-all ease-in-out">Add new menu item</p>
-          </Link>
-          {filteredMenus.map((menu) => (
-            <Card key={menu.id} className="py-0">
-              <CardContent className="p-2 flex flex-col gap-2">
-                <div className="shrink-0 relative aspect-4/3 rounded-xl overflow-hidden">
-                  <Image
-                    src={menu.image || `https://placehold.co/600x400/png?text=Chattable`}
-                    alt={menu.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-1">
-                  <h3 className="text-base font-semibold">{menu.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{menu.description || ""}</p>
-                </div>
-                <div className="shrink-0 flex items-center justify-between">
-                  <p className="font-bold">${parseFloat(menu.price).toFixed(2)}</p>
-                  <Link href={`/menu/${menu.id}/edit`}>
-                    <Button variant="outline" size="icon">
-                      <HugeiconsIcon icon={PencilEdit02Icon} />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {!loading && (
+            <Link
+              href="/menu/create"
+              className="w-full h-full flex flex-col gap-4 items-center justify-center border border-dashed border-border rounded-xl p-4 hover:bg-muted group"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} className="group-hover:rotate-180 transition-all ease-in-out" />
+              <p className="text-sm text-muted-foreground transition-all ease-in-out">Add new menu item</p>
+            </Link>
+          )}
+          {loading ? (
+            Array.from({ length: 10 }).map((_, index) => (
+              <Card key={index} className="py-0">
+                <CardContent className="p-2 flex flex-col gap-2">
+                  <div className="shrink-0 relative aspect-4/3 rounded-xl overflow-hidden">
+                    <Skeleton className="w-full h-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                  <div className="shrink-0 flex items-center justify-between">
+                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-9 w-9 rounded-md" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            filteredMenus.map((menu) => (
+              <Card key={menu.id} className="py-0">
+                <CardContent className="p-2 flex flex-col gap-2">
+                  <div className="shrink-0 relative aspect-4/3 rounded-xl overflow-hidden">
+                    <Image
+                      src={menu.image || `https://placehold.co/600x400/png?text=Chattable`}
+                      alt={menu.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1">
+                    <h3 className="text-base font-semibold">{menu.name}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{menu.description || ""}</p>
+                  </div>
+                  <div className="shrink-0 flex items-center justify-between">
+                    <p className="font-bold">${parseFloat(menu.price).toFixed(2)}</p>
+                    <Link href={`/menu/${menu.id}/edit`}>
+                      <Button variant="outline" size="icon">
+                        <HugeiconsIcon icon={PencilEdit02Icon} />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </div>
