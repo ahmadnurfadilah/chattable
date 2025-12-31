@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "../auth";
 import { db } from "@/drizzle/db";
 import { organizations, orders, orderItems, menus } from "@/drizzle/db/schema";
-import { eq, inArray, and, desc, gte, lte } from "drizzle-orm";
+import { eq, inArray, and, desc, gte, lte, count, sum } from "drizzle-orm";
 
 interface OrderItem {
   id: string;
@@ -116,10 +116,10 @@ export async function createOrderFromWebhook(agentId: string, dataCollectionResu
   });
 
   // Generate an 8-digit alphanumeric orderId with non-ambiguous characters
-  const nonAmbigChars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // Exclude I, L, O, 1, 0
-  const orderId = Array.from({ length: 8 }, () =>
-    nonAmbigChars[Math.floor(Math.random() * nonAmbigChars.length)]
-  ).join('');
+  const nonAmbigChars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // Exclude I, L, O, 1, 0
+  const orderId = Array.from({ length: 8 }, () => nonAmbigChars[Math.floor(Math.random() * nonAmbigChars.length)]).join(
+    ""
+  );
 
   // Create order
   const [newOrder] = await db
@@ -286,4 +286,89 @@ export async function updateOrderStatus(orderId: string, status: string) {
   }
 
   return updatedOrder;
+}
+
+/**
+ * Get dashboard statistics
+ */
+export async function getDashboardStats() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    return {
+      totalOrders: 0,
+      totalRevenue: 0,
+      todayOrders: 0,
+      todayRevenue: 0,
+      pendingOrders: 0,
+      menuItemsCount: 0,
+    };
+  }
+
+  // Get today's date range
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endOfToday = new Date(today);
+  endOfToday.setHours(23, 59, 59, 999);
+
+  // Total orders count
+  const [totalOrdersResult] = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(eq(orders.organizationId, activeOrgId));
+
+  // Total revenue
+  const [totalRevenueResult] = await db
+    .select({ total: sum(orders.total) })
+    .from(orders)
+    .where(and(eq(orders.organizationId, activeOrgId), eq(orders.status, "completed")));
+
+  // Today's orders count
+  const [todayOrdersResult] = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(
+      and(eq(orders.organizationId, activeOrgId), gte(orders.createdAt, today), lte(orders.createdAt, endOfToday))
+    );
+
+  // Today's revenue
+  const [todayRevenueResult] = await db
+    .select({ total: sum(orders.total) })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.organizationId, activeOrgId),
+        eq(orders.status, "completed"),
+        gte(orders.createdAt, today),
+        lte(orders.createdAt, endOfToday)
+      )
+    );
+
+  // Pending orders (new + cooking + ready)
+  const [pendingOrdersResult] = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(and(eq(orders.organizationId, activeOrgId), inArray(orders.status, ["new", "cooking", "ready"])));
+
+  // Menu items count
+  const [menuItemsResult] = await db
+    .select({ count: count() })
+    .from(menus)
+    .where(eq(menus.organizationId, activeOrgId));
+
+  return {
+    totalOrders: totalOrdersResult?.count || 0,
+    totalRevenue: parseFloat(totalRevenueResult?.total?.toString() || "0"),
+    todayOrders: todayOrdersResult?.count || 0,
+    todayRevenue: parseFloat(todayRevenueResult?.total?.toString() || "0"),
+    pendingOrders: pendingOrdersResult?.count || 0,
+    menuItemsCount: menuItemsResult?.count || 0,
+  };
 }
