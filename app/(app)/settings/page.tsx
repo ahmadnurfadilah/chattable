@@ -4,6 +4,8 @@ import { getElevenLabsAgent, getAgentIdFromActiveOrganization } from "@/lib/acti
 import { getActiveRestaurant } from "@/lib/actions/restaurant";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage() {
   let agentInitialData: {
     voice: string;
