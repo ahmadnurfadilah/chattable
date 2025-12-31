@@ -291,26 +291,30 @@ export function SettingsForm({ initialData }: { initialData: InitialData }) {
             <Controller
               name="language"
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="language">
-                    Language <span className="text-destructive">*</span>
-                  </FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                    <SelectTrigger id="language" aria-invalid={fieldState.invalid} className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
+              render={({ field, fieldState }) => {
+                const selectedLanguage = LANGUAGES.find((lang) => lang.code === field.value);
+
+                return (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="language">
+                      Language <span className="text-destructive">*</span>
+                    </FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                      <SelectTrigger id="language" aria-invalid={fieldState.invalid} className="w-full">
+                        <SelectValue>{selectedLanguage ? selectedLanguage.name : "Select a language"}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang.code} value={lang.code}>
+                            {lang.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                );
+              }}
             />
 
             <Controller

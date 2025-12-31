@@ -137,7 +137,7 @@ export const conversationConfig = (name: string, restaurantId: string) => ({
     },
     prompt: {
       temperature: 0.3,
-      toolIds: ["tool_4701kdrcfmp9e6srqgz1j0hyrm83", "tool_8401kdrbq9h5f9w81wx5zp3yh94m", "tool_4401kdt4kyk5ee7vfb17mwh0wnff"],
+      toolIds: ["tool_4701kdrcfmp9e6srqgz1j0hyrm83", "tool_8401kdrbq9h5f9w81wx5zp3yh94m", "tool_4401kdt4kyk5ee7vfb17mwh0wnff", "tool_7701kdt7zwtkffxb1r1y58qtvwnw"],
       prompt: prompt(restaurantId),
     },
   },

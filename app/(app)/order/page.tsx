@@ -31,6 +31,7 @@ type OrderItem = {
   quantity: number;
   price: number;
   total: number;
+  notes: string | null;
 };
 
 type Order = {
@@ -39,6 +40,7 @@ type Order = {
   tableNumber: string | null;
   status: string;
   total: number;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
   orderType: string;
@@ -331,6 +333,16 @@ export default function OrderPage() {
                   </div>
                 </div>
 
+                {/* Order Notes */}
+                {selectedOrder.notes && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold">Order Notes</h3>
+                    <div className="p-3 rounded-md border bg-muted/50">
+                      <p className="text-sm">{selectedOrder.notes}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Status Update */}
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold">Order Status</h3>
@@ -399,13 +411,18 @@ export default function OrderPage() {
                     {selectedOrder.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between p-3 rounded-md border bg-muted/50"
+                        className="flex items-start justify-between p-3 rounded-md border bg-muted/50"
                       >
                         <div className="flex-1">
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">
                             Quantity: {item.quantity} × ${item.price.toFixed(2)}
                           </p>
+                          {item.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 italic">
+                              Note: {item.notes}
+                            </p>
+                          )}
                         </div>
                         <p className="text-sm font-semibold">${item.total.toFixed(2)}</p>
                       </div>

@@ -236,6 +236,7 @@ export async function getOrders(status?: string, date?: Date) {
     orderType: order.type,
     status: order.status,
     total: parseFloat(order.total.toString()),
+    notes: order.notes || null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
     items: (itemsByOrderId.get(order.id) || []).map((item) => ({
@@ -244,6 +245,7 @@ export async function getOrders(status?: string, date?: Date) {
       quantity: item.quantity,
       price: parseFloat(item.price.toString()),
       total: parseFloat(item.total.toString()),
+      notes: item.notes || null,
     })),
   }));
 }
