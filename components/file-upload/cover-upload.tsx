@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFileUpload, type FileWithPreview } from "@/hooks/use-file-upload";
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,12 @@ export default function CoverUpload({
 }: CoverUploadProps) {
   const [coverImage, setCoverImage] = useState<FileWithPreview | null>(defaultImage);
   const [imageLoading, setImageLoading] = useState(false);
+
+  // Sync internal state when defaultImage prop changes
+  useEffect(() => {
+    setCoverImage(defaultImage);
+    setImageLoading(false);
+  }, [defaultImage]);
 
   const [
     { isDragging, errors },
@@ -172,7 +178,6 @@ export default function CoverUpload({
       <div className="rounded-lg bg-muted/50 p-4">
         <h4 className="mb-2 text-sm font-medium">Menu Image Guidelines</h4>
         <ul className="space-y-1 text-xs text-muted-foreground">
-          <li>• Use high-quality images with good lighting and composition</li>
           <li>• Recommended aspect ratio: 4:3 for best results</li>
           <li>• Make sure the food/item is clearly visible and centered</li>
           <li>• Supported formats: JPG, PNG, WebP</li>

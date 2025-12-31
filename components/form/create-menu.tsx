@@ -1,7 +1,7 @@
 "use client";
 
 import * as z from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading03Icon } from "@hugeicons/core-free-icons";
+import { AiBrain04Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { getMenuCategories } from "@/lib/actions/menu-category";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import CoverUpload from "../file-upload/cover-upload";
+import { ImageRefineDialog } from "../image-refine-dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
@@ -48,6 +49,7 @@ export function CreateMenuForm() {
   const [imageFile, setImageFile] = useState<FileWithPreview | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [isRefineDialogOpen, setIsRefineDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,14 +114,24 @@ export function CreateMenuForm() {
   return (
     <form onSubmit={form.handleSubmit(handleCreateMenu)} className="grid grid-cols-2 gap-6">
       <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Create Menu Item</CardTitle>
-          <CardDescription>Add a new item to your restaurant menu</CardDescription>
-        </CardHeader>
         <CardContent>
           <FieldGroup>
             <Field>
-              <CoverUpload onImageChange={(file) => setImageFile(file)} aspectRatio="4/3" />
+              <CoverUpload defaultImage={imageFile} onImageChange={(file) => setImageFile(file)} aspectRatio="4/3" />
+              {imageFile && (
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsRefineDialogOpen(true)}
+                    className="w-full"
+                  >
+                    <HugeiconsIcon icon={AiBrain04Icon} className="size-4 mr-2" />
+                    Refine Image with AI
+                  </Button>
+                </div>
+              )}
             </Field>
           </FieldGroup>
         </CardContent>
@@ -269,6 +281,16 @@ export function CreateMenuForm() {
           </FieldGroup>
         </CardContent>
       </Card>
+
+      <ImageRefineDialog
+        open={isRefineDialogOpen}
+        onOpenChange={setIsRefineDialogOpen}
+        imageFile={imageFile}
+        menuItemName={form.watch("name") || undefined}
+        onRefined={(refinedImage) => {
+          setImageFile(refinedImage);
+        }}
+      />
     </form>
   );
 }
