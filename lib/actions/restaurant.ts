@@ -19,6 +19,11 @@ export async function getRestaurants() {
   return data;
 }
 
+export async function getRestaurant(restaurantId: string) {
+  const data = await db.select().from(organizations).where(eq(organizations.id, restaurantId)).limit(1);
+  return data[0];
+}
+
 export async function createRestaurant(formData: FormData) {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
