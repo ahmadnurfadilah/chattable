@@ -120,7 +120,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b bg-linear-to-b from-background to-muted/20 py-20 md:py-32">
+      <section className="relative overflow-hidden border-b bg-linear-to-b from-background to-muted/20 py-20 md:py-32 lg:py-36 xl:py-44">
         <BackgroundRippleEffect />
 
         {/* Floating Chat Bubbles */}

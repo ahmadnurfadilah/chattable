@@ -175,18 +175,29 @@ export default function VoiceChat({
       >
         <Card className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden p-6">
           <div className="flex flex-col items-center gap-6">
-            <div className="relative size-32">
-              <div className="bg-muted relative h-full w-full rounded-full p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
-                <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_12px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.3)]">
-                  <Orb
-                    className="h-full w-full"
-                    volumeMode="manual"
-                    getInputVolume={getInputVolume}
-                    getOutputVolume={getOutputVolume}
-                  />
+            {agentState === "disconnected" && restaurant?.logo ? (
+              <div className="relative size-32">
+                <Image
+                  src={restaurant.logo}
+                  alt={restaurant.name}
+                  fill
+                  className="object-cover object-center rounded-full border-2 border-primary"
+                />
+              </div>
+            ) : (
+              <div className="relative size-32">
+                <div className="bg-muted relative h-full w-full rounded-full p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
+                  <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_12px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.3)]">
+                    <Orb
+                      className="h-full w-full"
+                      volumeMode="manual"
+                      getInputVolume={getInputVolume}
+                      getOutputVolume={getOutputVolume}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col items-center gap-2">
               <h2 className="text-xl font-semibold">{restaurant.name}</h2>

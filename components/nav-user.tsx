@@ -69,13 +69,13 @@ export function NavUser({ user }: { user: User }) {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            {/* <DropdownMenuGroup>
               <DropdownMenuItem>
                 <HugeiconsIcon icon={UserIcon} />
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
             <DropdownMenuItem onClick={handleLogout}>
               <HugeiconsIcon icon={LogoutIcon} />
               Log out
