@@ -286,3 +286,60 @@ export async function updateMenu(menuId: string, formData: FormData) {
 
   return updatedMenu;
 }
+
+export async function deleteMenu(menuId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const activeOrgId = session.session?.activeOrganizationId;
+  if (!activeOrgId) {
+    throw new Error("No active organization");
+  }
+
+  // Verify menu exists and belongs to organization
+  const [existingMenu] = await db
+    .select({
+      id: menus.id,
+      image: menus.image,
+      organizationId: menus.organizationId,
+    })
+    .from(menus)
+    .where(and(eq(menus.id, menuId), eq(menus.organizationId, activeOrgId)))
+    .limit(1);
+
+  if (!existingMenu) {
+    throw new Error("Menu not found");
+  }
+
+  // Delete image from storage if it exists
+  if (existingMenu.image) {
+    try {
+      // Extract file path from URL
+      // URL format: https://[project].supabase.co/storage/v1/object/public/chattable/menus/[orgId]/[filename]
+      const urlParts = existingMenu.image.split("/chattable/");
+      if (urlParts.length > 1) {
+        // The path should be relative to the bucket (e.g., "menus/[orgId]/[filename]")
+        const filePath = urlParts[1];
+        const { error: storageError } = await supabaseServer.storage.from("chattable").remove([filePath]);
+
+        if (storageError) {
+          console.error("Error deleting image from storage:", storageError);
+          // Continue with menu deletion even if image deletion fails
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      // Continue with menu deletion even if image deletion fails
+    }
+  }
+
+  // Delete menu item
+  await db.delete(menus).where(and(eq(menus.id, menuId), eq(menus.organizationId, activeOrgId)));
+
+  return { success: true };
+}

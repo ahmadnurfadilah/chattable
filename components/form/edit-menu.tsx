@@ -13,12 +13,22 @@ import { AiBrain04Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getMenu, updateMenu } from "@/lib/actions/menu";
+import { getMenu, updateMenu, deleteMenu } from "@/lib/actions/menu";
 import { getMenuCategories } from "@/lib/actions/menu-category";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import CoverUpload from "../file-upload/cover-upload";
 import { ImageRefineDialog } from "../image-refine-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
@@ -57,6 +67,8 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [isRefineDialogOpen, setIsRefineDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -162,6 +174,22 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
     setImageFile(null);
     if (hadExistingImage) {
       setRemoveImage(true);
+    }
+  };
+
+  const handleDeleteMenu = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteMenu(menuId);
+      toast.success("Menu item deleted successfully");
+      router.push("/menu");
+    } catch (error) {
+      toast.error("Failed to delete menu item", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -342,16 +370,26 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
               )}
             />
             <Field>
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isLoading || loadingCategories || categories.length === 0}>
-                  {isLoading ? (
-                    <HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" />
-                  ) : (
-                    "Update Menu Item"
-                  )}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
-                  Cancel
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isLoading || loadingCategories || categories.length === 0}>
+                    {isLoading ? (
+                      <HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" />
+                    ) : (
+                      "Update Menu Item"
+                    )}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
+                    Cancel
+                  </Button>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  disabled={isLoading || isDeleting}
+                >
+                  {isDeleting ? <HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" /> : "Delete"}
                 </Button>
               </div>
             </Field>
@@ -370,6 +408,30 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
           setRemoveImage(false);
         }}
       />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Menu Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{form.watch("name")}&rdquo;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMenu} disabled={isDeleting} variant="destructive">
+              {isDeleting ? (
+                <>
+                  <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
