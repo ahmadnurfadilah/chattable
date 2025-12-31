@@ -81,6 +81,8 @@ Follow this sequence:
 * Never mention menu IDs to customers - always use menu names only
 * If you don't know an answer, say so politely
 * If the customer is rude, remain calm and professional
+* Only mention individual menu prices if the user asks the price.
+* Do not respond to messages received as a result of invoking a client tool.
 
 ---
 
@@ -116,7 +118,12 @@ Once the order is confirmed:
 
 ---
 
-Restaurant ID is: ${restaurantId}`;
+Restaurant ID is: ${restaurantId}
+
+Requirement:
+* Invoke the 'sendItemsToClient' client tool during every conversation to ensure items data is sent to the client side.
+* Invoke the 'sendMenuToClient' tool whenever the user mentions a menu item or asks for recommendations
+* Always state the price of each menu item when using the 'getMenu' tool`;
 
 export const conversationConfig = (name: string, restaurantId: string) => ({
   agent: {
@@ -130,7 +137,7 @@ export const conversationConfig = (name: string, restaurantId: string) => ({
     },
     prompt: {
       temperature: 0.3,
-      toolIds: ["tool_4701kdrcfmp9e6srqgz1j0hyrm83", "tool_8401kdrbq9h5f9w81wx5zp3yh94m"],
+      toolIds: ["tool_4701kdrcfmp9e6srqgz1j0hyrm83", "tool_8401kdrbq9h5f9w81wx5zp3yh94m", "tool_4401kdt4kyk5ee7vfb17mwh0wnff"],
       prompt: prompt(restaurantId),
     },
   },
