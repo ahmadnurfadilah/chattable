@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FloatingChatBubbles } from "@/components/floating-chat-bubbles";
 import {
   VoiceIcon,
   AiBrain04Icon,
@@ -18,6 +19,7 @@ import {
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 
 export default function LandingPage() {
   const features = [
@@ -119,11 +121,16 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b bg-linear-to-b from-background to-muted/20 py-20 md:py-32">
-        <div className="container mx-auto px-4 md:px-6">
+        <BackgroundRippleEffect />
+
+        {/* Floating Chat Bubbles */}
+        <FloatingChatBubbles />
+
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-sm">
               <HugeiconsIcon icon={SparklesIcon} className="size-4 text-primary" />
-              <span className="text-muted-foreground">Powered by AI & ElevenLabs</span>
+              <span className="text-muted-foreground">Powered by Gemini & ElevenLabs</span>
             </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
               Turn Ordering Into a
