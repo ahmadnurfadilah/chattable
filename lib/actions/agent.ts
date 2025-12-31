@@ -47,6 +47,31 @@ export async function getAgentIdFromActiveOrganization() {
 }
 
 /**
+ * Get agent ID from restaurant ID
+ */
+export async function getAgentIdFromRestaurantId(restaurantId: string) {
+  const [org] = await db
+    .select({ metadata: organizations.metadata })
+    .from(organizations)
+    .where(eq(organizations.id, restaurantId))
+    .limit(1);
+
+  if (!org?.metadata) {
+    throw new Error("Restaurant metadata not found");
+  }
+
+  try {
+    const metadata = JSON.parse(org.metadata);
+    if (!metadata.agentId) {
+      throw new Error("Agent ID not found in restaurant metadata");
+    }
+    return metadata.agentId as string;
+  } catch {
+    throw new Error("Failed to parse restaurant metadata");
+  }
+}
+
+/**
  * Get ElevenLabs agent settings
  */
 export async function getElevenLabsAgent(agentId?: string) {

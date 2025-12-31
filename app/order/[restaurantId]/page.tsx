@@ -1,4 +1,4 @@
-import { getAgentIdFromActiveOrganization } from "@/lib/actions/agent";
+import { getAgentIdFromRestaurantId } from "@/lib/actions/agent";
 import VoiceChat from "./voice";
 import { getRestaurant } from "@/lib/actions/restaurant";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
@@ -7,7 +7,7 @@ export default async function ChatPage({ params }: { params: Promise<{ restauran
   const { restaurantId } = await params;
 
   const restaurant = await getRestaurant(restaurantId);
-  const agentId = await getAgentIdFromActiveOrganization();
+  const agentId = await getAgentIdFromRestaurantId(restaurantId);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen p-4 md:p-6">
