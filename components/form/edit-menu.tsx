@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading03Icon } from "@hugeicons/core-free-icons";
+import { AiBrain04Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { getMenuCategories } from "@/lib/actions/menu-category";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import CoverUpload from "../file-upload/cover-upload";
+import { ImageRefineDialog } from "../image-refine-dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
@@ -55,6 +56,7 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
   const [removeImage, setRemoveImage] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [isRefineDialogOpen, setIsRefineDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -183,16 +185,29 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
             <Field>
               <CoverUpload onImageChange={handleImageChange} defaultImage={imageFile} aspectRatio="4/3" />
               {imageFile && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRemoveImage}
-                  className="mt-2 w-full"
-                  disabled={isLoading}
-                >
-                  Remove Image
-                </Button>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsRefineDialogOpen(true)}
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    <HugeiconsIcon icon={AiBrain04Icon} className="size-4 mr-2" />
+                    Refine Image with AI
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveImage}
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    Remove Image
+                  </Button>
+                </div>
               )}
             </Field>
           </FieldGroup>
@@ -343,6 +358,18 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
           </FieldGroup>
         </CardContent>
       </Card>
+
+      <ImageRefineDialog
+        open={isRefineDialogOpen}
+        onOpenChange={setIsRefineDialogOpen}
+        imageFile={imageFile}
+        menuItemName={form.watch("name") || undefined}
+        onRefined={(refinedImage) => {
+          setImageFile(refinedImage);
+          // When a refined image is set, treat it as a new file (replacing any existing one)
+          setRemoveImage(false);
+        }}
+      />
     </form>
   );
 }
